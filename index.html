@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SiteReel — Turn Any Platform Into a Video Review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #04060f;
+      --bg-2: #080c1a;
+      --blue: #3b82f6;
+      --violet: #8b5cf6;
+      --cyan: #06b6d4;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --border: rgba(255,255,255,0.07);
+      --glass: rgba(255,255,255,0.03);
+      --glass-hover: rgba(255,255,255,0.06);
+      --grad: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      --grad-text: linear-gradient(90deg, #60a5fa, #a78bfa);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ─── NOISE TEXTURE ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.6;
+    }
+
+    /* ─── AURORA BG ─── */
+    .aurora {
+      position: fixed;
+      top: -50%;
+      left: -20%;
+      width: 140%;
+      height: 80vh;
+      background: radial-gradient(ellipse 60% 50% at 30% 30%, rgba(59,130,246,0.12) 0%, transparent 70%),
+                  radial-gradient(ellipse 50% 40% at 75% 20%, rgba(139,92,246,0.10) 0%, transparent 70%),
+                  radial-gradient(ellipse 40% 30% at 50% 80%, rgba(6,182,212,0.06) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+      animation: aurora-drift 20s ease-in-out infinite alternate;
+    }
+
+    @keyframes aurora-drift {
+      0% { transform: translate(0,0) scale(1); }
+      100% { transform: translate(2%,3%) scale(1.05); }
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 100;
+      padding: 1.25rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(20px);
+      background: rgba(4,6,15,0.7);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.4rem;
+      letter-spacing: -0.02em;
+      background: var(--grad-text);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav-logo span {
+      -webkit-text-fill-color: #e2e8f0;
+      background: none;
+      -webkit-background-clip: unset;
+      background-clip: unset;
+    }
+
+    nav a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    nav a:hover { color: var(--text); }
+
+    .nav-links { display: flex; gap: 2rem; align-items: center; }
+
+    .btn-ghost {
+      border: 1px solid var(--border);
+      padding: 0.45rem 1.1rem;
+      border-radius: 6px;
+      background: var(--glass);
+      color: var(--text) !important;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .btn-ghost:hover { background: var(--glass-hover); border-color: rgba(255,255,255,0.15); }
+
+    /* ─── HERO ─── */
+    .hero {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 8rem 2rem 6rem;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--blue);
+      background: rgba(59,130,246,0.08);
+      border: 1px solid rgba(59,130,246,0.2);
+      padding: 0.35rem 1rem;
+      border-radius: 100px;
+      margin-bottom: 2rem;
+      animation: fade-up 0.6s ease both;
+    }
+
+    .hero-eyebrow::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--blue);
+      animation: pulse-dot 2s ease infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.7); }
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(3rem, 8vw, 6.5rem);
+      font-weight: 800;
+      line-height: 1.0;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.5rem;
+      animation: fade-up 0.6s 0.1s ease both;
+    }
+
+    h1 .grad {
+      background: var(--grad-text);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: clamp(1rem, 2vw, 1.25rem);
+      color: var(--muted);
+      max-width: 600px;
+      font-weight: 300;
+      line-height: 1.7;
+      margin-bottom: 2.5rem;
+      animation: fade-up 0.6s 0.2s ease both;
+    }
+
+    .hero-ctas {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      animation: fade-up 0.6s 0.3s ease both;
+    }
+
+    .btn-primary {
+      background: var(--grad);
+      color: white;
+      padding: 0.85rem 2rem;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 0.95rem;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+      box-shadow: 0 0 30px rgba(59,130,246,0.3);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 40px rgba(59,130,246,0.4); }
+
+    .btn-outline {
+      border: 1px solid var(--border);
+      background: var(--glass);
+      color: var(--text);
+      padding: 0.85rem 2rem;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 0.95rem;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+    }
+    .btn-outline:hover { background: var(--glass-hover); transform: translateY(-2px); }
+
+    /* Film reel decoration */
+    .film-strip {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(59,130,246,0.3) 20%,
+        rgba(139,92,246,0.5) 50%,
+        rgba(6,182,212,0.3) 80%,
+        transparent 100%);
+      animation: scan 3s ease infinite;
+    }
+    @keyframes scan {
+      0% { background-position: -100% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    /* ─── SECTIONS ─── */
+    section {
+      position: relative;
+      z-index: 1;
+      padding: 6rem 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--violet);
+      margin-bottom: 0.75rem;
+    }
+
+    h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2rem, 4vw, 3.5rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+
+    .section-desc {
+      color: var(--muted);
+      max-width: 540px;
+      font-size: 1.05rem;
+      font-weight: 300;
+      line-height: 1.7;
+    }
+
+    /* ─── PIPELINE ─── */
+    .pipeline-wrapper {
+      margin-top: 4rem;
+      position: relative;
+    }
+
+    /* Connector line */
+    .pipeline-wrapper::before {
+      content: '';
+      position: absolute;
+      top: 3rem;
+      left: 2.5rem;
+      right: 2.5rem;
+      height: 1px;
+      background: linear-gradient(90deg, var(--blue), var(--violet), var(--cyan));
+      opacity: 0.3;
+    }
+
+    .pipeline {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1.5rem;
+    }
+
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 1rem;
+      animation: fade-up 0.5s ease both;
+    }
+
+    .step:nth-child(1) { animation-delay: 0.1s; }
+    .step:nth-child(2) { animation-delay: 0.2s; }
+    .step:nth-child(3) { animation-delay: 0.3s; }
+    .step:nth-child(4) { animation-delay: 0.4s; }
+    .step:nth-child(5) { animation-delay: 0.5s; }
+
+    .step-icon {
+      width: 5rem;
+      height: 5rem;
+      border-radius: 16px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      position: relative;
+      transition: all 0.3s;
+      z-index: 1;
+    }
+
+    .step:hover .step-icon {
+      background: rgba(59,130,246,0.08);
+      border-color: rgba(59,130,246,0.3);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 30px rgba(59,130,246,0.2);
+    }
+
+    .step-num {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--grad);
+      font-size: 0.65rem;
+      font-family: 'JetBrains Mono', monospace;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+    }
+
+    .step-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: -0.01em;
+    }
+
+    .step-desc {
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ─── OUTPUT CARDS ─── */
+    .outputs-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin-top: 3rem;
+    }
+
+    .output-card {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .output-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--grad);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .output-card:hover {
+      border-color: rgba(59,130,246,0.3);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+
+    .output-card:hover::before { opacity: 0.05; }
+
+    .output-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .output-filename {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--cyan);
+      margin-bottom: 0.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .output-card h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .output-card p {
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.6;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ─── DEMO ─── */
+    .demo-section {
+      background: var(--bg-2);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .demo-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 6rem 2rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+
+    .demo-video {
+      aspect-ratio: 16/9;
+      background: linear-gradient(135deg, #0d1425, #0a0f1e);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .demo-video:hover { border-color: rgba(59,130,246,0.4); }
+
+    .demo-video::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 30% 40%, rgba(59,130,246,0.15) 0%, transparent 50%),
+        radial-gradient(circle at 70% 60%, rgba(139,92,246,0.12) 0%, transparent 50%);
+    }
+
+    .play-btn {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: var(--grad);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 0 40px rgba(59,130,246,0.4);
+      transition: all 0.3s;
+    }
+
+    .demo-video:hover .play-btn {
+      transform: scale(1.1);
+      box-shadow: 0 0 60px rgba(59,130,246,0.6);
+    }
+
+    .play-btn svg { margin-left: 4px; }
+
+    .demo-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--muted);
+      position: relative;
+      z-index: 1;
+      letter-spacing: 0.05em;
+    }
+
+    .demo-text h2 { margin-bottom: 1rem; }
+
+    .demo-stat {
+      display: flex;
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    .stat { text-align: left; }
+
+    .stat-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: var(--grad-text);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+    }
+
+    .stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem; }
+
+    /* ─── FEATURES GRID ─── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin-top: 3rem;
+    }
+
+    .feature-card {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.75rem;
+      transition: all 0.3s;
+    }
+
+    .feature-card:hover {
+      background: var(--glass-hover);
+      border-color: rgba(139,92,246,0.25);
+      transform: translateY(-2px);
+    }
+
+    .feature-icon {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 8px;
+      background: rgba(139,92,246,0.12);
+      border: 1px solid rgba(139,92,246,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+    }
+
+    .feature-card h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+      letter-spacing: -0.01em;
+    }
+
+    .feature-card p {
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ─── INSTALL ─── */
+    .install-section {
+      background: var(--bg-2);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .install-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 6rem 2rem;
+      text-align: center;
+    }
+
+    .install-inner h2 { margin-bottom: 0.75rem; }
+    .install-inner .section-desc { margin: 0 auto 3rem; }
+
+    .code-block {
+      background: #020408;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: left;
+      max-width: 680px;
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .code-block::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--grad);
+    }
+
+    .code-header {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 1.5rem;
+    }
+
+    .code-dot {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+    }
+    .code-dot:nth-child(1) { background: #ff5f57; }
+    .code-dot:nth-child(2) { background: #febc2e; }
+    .code-dot:nth-child(3) { background: #28c840; }
+
+    .code-block pre {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      line-height: 1.8;
+      overflow-x: auto;
+    }
+
+    .code-comment { color: #4b5563; }
+    .code-key { color: #8b5cf6; }
+    .code-val { color: #60a5fa; }
+    .code-str { color: #34d399; }
+    .code-cmd { color: #e2e8f0; }
+
+    /* ─── FOOTER ─── */
+    footer {
+      position: relative;
+      z-index: 1;
+      padding: 3rem 2rem;
+      text-align: center;
+      border-top: 1px solid var(--border);
+    }
+
+    .footer-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.2rem;
+      background: var(--grad-text);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.75rem;
+    }
+
+    footer p {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    footer a {
+      color: var(--blue);
+      text-decoration: none;
+    }
+    footer a:hover { color: var(--violet); }
+
+    /* ─── DIVIDER ─── */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fade-up {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 900px) {
+      .pipeline { grid-template-columns: repeat(3, 1fr); }
+      .pipeline-wrapper::before { display: none; }
+      .outputs-grid { grid-template-columns: 1fr; }
+      .features-grid { grid-template-columns: 1fr 1fr; }
+      .demo-inner { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 600px) {
+      .pipeline { grid-template-columns: 1fr 1fr; }
+      .features-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="aurora"></div>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-logo">Site<span>Reel</span></div>
+    <div class="nav-links">
+      <a href="#how-it-works">How it works</a>
+      <a href="#features">Features</a>
+      <a href="#install">Install</a>
+      <a href="https://github.com/aviz85/site-review" class="btn-ghost">GitHub →</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">Claude Code Skill · v1.0</div>
+    <h1>Turn Any Platform<br>Into a <span class="grad">Video Review</span></h1>
+    <p class="hero-sub">
+      SiteReel explores any website or app, documents every finding,
+      writes the narration, and assembles a complete magazine-style video —
+      <em>automatically.</em>
+    </p>
+    <div class="hero-ctas">
+      <a href="https://github.com/aviz85/site-review" class="btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        View on GitHub
+      </a>
+      <a href="#how-it-works" class="btn-outline">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 8 12 12 14 14"/></svg>
+        See how it works
+      </a>
+    </div>
+    <div class="film-strip"></div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <section id="how-it-works">
+    <div class="section-label reveal">Pipeline</div>
+    <h2 class="reveal">Five steps.<br>One complete video.</h2>
+    <p class="section-desc reveal">From a URL to a published review reel — the entire workflow runs inside Claude Code, orchestrating browser automation, voice AI, and video tools.</p>
+
+    <div class="pipeline-wrapper reveal">
+      <div class="pipeline">
+        <div class="step">
+          <div class="step-icon">
+            🔍
+            <div class="step-num">1</div>
+          </div>
+          <div class="step-title">Explore</div>
+          <div class="step-desc">AI agent tours the platform and records a GIF of the full session</div>
+        </div>
+        <div class="step">
+          <div class="step-icon">
+            📝
+            <div class="step-num">2</div>
+          </div>
+          <div class="step-title">Document</div>
+          <div class="step-desc">Live MD documentation built in real-time during exploration</div>
+        </div>
+        <div class="step">
+          <div class="step-icon">
+            🎙️
+            <div class="step-num">3</div>
+          </div>
+          <div class="step-title">Script</div>
+          <div class="step-desc">Magazine-style narration script written with direction cues</div>
+        </div>
+        <div class="step">
+          <div class="step-icon">
+            🎬
+            <div class="step-num">4</div>
+          </div>
+          <div class="step-title">Produce</div>
+          <div class="step-desc">Video assembled: GIF looped, voice mixed with music at 12%</div>
+        </div>
+        <div class="step">
+          <div class="step-icon">
+            💬
+            <div class="step-num">5</div>
+          </div>
+          <div class="step-title">Subtitles</div>
+          <div class="step-desc">Word-level captions burned in, RTL supported for Hebrew &amp; Arabic</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- OUTPUTS -->
+  <section id="outputs">
+    <div class="section-label reveal">Output</div>
+    <h2 class="reveal">Everything you need.<br>Ready to publish.</h2>
+    <p class="section-desc reveal">Every run produces a complete set of artifacts — from raw notes to publish-ready video.</p>
+
+    <div class="outputs-grid">
+      <div class="output-card reveal">
+        <div class="output-icon">📄</div>
+        <div class="output-filename">review.md</div>
+        <h3>Exploration Notes</h3>
+        <p>Full documentation of everything found during the platform tour. Feature inventory, data volumes, UX observations, and automation opportunities — all structured in markdown.</p>
+      </div>
+      <div class="output-card reveal" style="animation-delay:0.1s">
+        <div class="output-icon">🎙️</div>
+        <div class="output-filename">narration.mp3</div>
+        <h3>ElevenLabs Narration</h3>
+        <p>Magazine-quality voice narration generated from the review script. Multilingual — English or Hebrew. Cloned voice for consistent brand sound.</p>
+      </div>
+      <div class="output-card reveal" style="animation-delay:0.2s">
+        <div class="output-icon">🎬</div>
+        <div class="output-filename">final.mp4</div>
+        <h3>Complete Review Video</h3>
+        <p>GIF exploration looped to narration length, mixed with AI background music, subtitles burned in. Ready for WhatsApp, LinkedIn, or YouTube.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEMO -->
+  <div class="demo-section">
+    <div class="demo-inner">
+      <div class="demo-video" onclick="this.innerHTML='<iframe style=&quot;width:100%;height:100%;border:none;border-radius:16px&quot; src=&quot;https://www.youtube.com/embed/dQw4w9WgXcQ&quot; allowfullscreen></iframe>'">
+        <div class="play-btn">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </div>
+        <div class="demo-label">WATCH DEMO</div>
+      </div>
+
+      <div class="demo-text">
+        <div class="section-label reveal">Live Demo</div>
+        <h2 class="reveal">CFC Internal<br>Ticket Dashboard</h2>
+        <p class="section-desc reveal">
+          This demo was produced end-to-end using SiteReel on Car Finance Central —
+          a Zoho CRM managing 35,000+ PCP motor finance claims.
+          The agent explored the dashboard, documented 28,638 open tickets,
+          wrote the script, and delivered a 90-second review video.
+        </p>
+        <div class="demo-stat reveal">
+          <div class="stat">
+            <div class="stat-num">90s</div>
+            <div class="stat-label">Video produced</div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">5</div>
+            <div class="stat-label">Steps automated</div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">0</div>
+            <div class="stat-label">Manual edits</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <section id="features">
+    <div class="section-label reveal">Features</div>
+    <h2 class="reveal">Everything wired in.<br>Nothing to configure.</h2>
+    <p class="section-desc reveal">SiteReel orchestrates six different AI tools — all called automatically from a single skill invocation.</p>
+
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon">🎥</div>
+        <h3>GIF Recording</h3>
+        <p>Chrome browser automation records a real exploration session as an animated GIF. No screen recorder needed — built into the skill.</p>
+      </div>
+      <div class="feature-card reveal" style="animation-delay:0.1s">
+        <div class="feature-icon">🎙️</div>
+        <h3>ElevenLabs Voice</h3>
+        <p>Cloned voice narration via ElevenLabs multilingual v2. Consistent, professional audio with direction cues baked into the script.</p>
+      </div>
+      <div class="feature-card reveal" style="animation-delay:0.2s">
+        <div class="feature-icon">🎵</div>
+        <h3>AI Music</h3>
+        <p>Custom background score generated per review. Corporate ambient at 12% volume — present but never intrusive. Never the same track twice.</p>
+      </div>
+      <div class="feature-card reveal" style="animation-delay:0.15s">
+        <div class="feature-icon">🔁</div>
+        <h3>Smart Looping</h3>
+        <p>GIF duration is measured and automatically looped to match narration length. Narration sets the pace — video follows.</p>
+      </div>
+      <div class="feature-card reveal" style="animation-delay:0.25s">
+        <div class="feature-icon">💬</div>
+        <h3>Auto Subtitles</h3>
+        <p>Groq Whisper word-level transcription generates SRT files. Subtitles are reviewed, corrected, and burned directly into the video.</p>
+      </div>
+      <div class="feature-card reveal" style="animation-delay:0.35s">
+        <div class="feature-icon">↔️</div>
+        <h3>RTL Support</h3>
+        <p>Hebrew and Arabic subtitle content is automatically detected and wrapped with Unicode directional marks before embedding. No configuration needed.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- INSTALL -->
+  <div class="install-section">
+    <div class="install-inner">
+      <div class="section-label reveal">Get started</div>
+      <h2 class="reveal">One skill.<br>Any platform.</h2>
+      <p class="section-desc reveal">
+        SiteReel is a Claude Code skill — install it once, use it everywhere.
+        No configuration, no API setup. Just point it at any URL.
+      </p>
+
+      <div class="code-block reveal">
+        <div class="code-header">
+          <div class="code-dot"></div>
+          <div class="code-dot"></div>
+          <div class="code-dot"></div>
+        </div>
+        <pre><span class="code-comment"># Skill location</span>
+<span class="code-key">~/.claude/skills/site-review/</span>
+
+<span class="code-comment"># Usage — English review</span>
+<span class="code-cmd">/site-review</span> <span class="code-str">https://yourapp.com</span>
+
+<span class="code-comment"># Hebrew narration with RTL subtitles</span>
+<span class="code-cmd">/site-review</span> <span class="code-str">https://yourapp.com</span> <span class="code-val">--lang he</span>
+
+<span class="code-comment"># Reuse existing GIF, skip recording</span>
+<span class="code-cmd">/site-review</span> <span class="code-str">https://yourapp.com</span> <span class="code-val">--gif /tmp/my-session.gif</span>
+
+<span class="code-comment"># Custom output directory</span>
+<span class="code-cmd">/site-review</span> <span class="code-str">https://yourapp.com</span> <span class="code-val">--output ~/reviews/myapp</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">SiteReel</div>
+    <p>
+      A <a href="https://claude.ai/code">Claude Code</a> skill by
+      <a href="https://github.com/aviz85">aviz85</a> ·
+      <a href="https://github.com/aviz85/site-review">GitHub</a>
+    </p>
+  </footer>
+
+  <script>
+    // Intersection Observer for scroll reveals
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>
